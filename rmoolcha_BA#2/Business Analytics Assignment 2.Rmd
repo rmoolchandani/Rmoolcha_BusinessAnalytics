@@ -1,0 +1,166 @@
+---
+title: "Business Analytics Assignment 2"
+author: "Rakhee Moolchandani"
+date: "11/15/2020"
+output: 
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Run the following code in R-studio to create two variables X and Y
+```{r}
+set.seed(2017)
+X=runif(100)*10
+Y=X*4+3.45
+Y=rnorm(100)*0.29*Y+Y
+X
+Y
+```
+
+
+### a) Plot Y against X. Include a screen shot of the plot in your submission. Using the File menu you can save the graph as a picture on your computer. Based on the plot do you think we can fit a linear model to explain Y based on X?
+```{r}
+plot(X, Y, xlab = 'X', ylab = 'Y', col = "blue")  #plot Y against X
+abline(lsfit(X, Y),col = "red")
+
+library(e1071)
+par(mfrow=c(1, 2))  # divide graph area in 2 columns
+plot(density(X), main="Density Plot: X", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(X), 2)))  # density plot for 'X'
+polygon(density(X), col="red")
+plot(density(Y), main="Density Plot: Y", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(Y), 2)))  # density plot for 'Y'
+polygon(density(Y), col="red")
+
+cor(X, Y) #calculate correlation between X and Y
+```
+
+## The plot along with the line above suggests a linearly increasing relationship between the ‘X’ and ‘Y’ variables. This is a good thing, because, one of the underlying assumptions in linear regression is that the relationship between the response and predictor variables is linear and additive. Based on the plot we can fit a linear model to explain Y based on X.
+
+
+
+### b) Construct a simple linear model of Y based on X. Write the equation that explains Y based on X. What is the accuracy of this model? 
+```{r}
+linearMod <- lm(Y ~ X)  # build linear regression model on full data
+print(linearMod) # print the linear model
+summary(linearMod) # show the summary of the model
+```
+
+## Now that we have built the linear model, we also have established the relationship between the predictor and response in the form of a mathematical formula for Y as a function for X. For the above output, you can notice the ‘Coefficients’ part having two components: Intercept: 4.4655, X: 3.6108 These are also called the beta coefficients. In other words, 
+## Equation of the Model Y = 4.4655 + 3.6108*X and Accuracy of the Model = 65.17%. Therefore 65% Variability in Y can be explained in X.
+
+
+
+### c) How the Coefficient of Determination, R2, of the model above is related to the correlation coefficient of X and Y?
+```{r}
+SSYY=sum((Y-mean(Y))^2) 
+SSXY=sum((X-mean(X))*(Y-mean(Y))) 
+SSX=sum((X-mean(X))^2)
+b1= SSXY/SSX 
+b0=mean(Y)-b1*mean(X) 
+Y_Estimated=X*b1+b0
+Residuals= Y-Y_Estimated 
+SSE=sum((Residuals -mean(Residuals))^2) 
+r2=1-SSE/SSYY
+r2 
+cor(X,Y)^2
+```
+
+## The coefficient of determination, R2, is used to analyze how differences in one variable can be explained by a difference in a second variable. More specifically, R-squared gives the percentage variation in Y explained by X-variables. The range is 0 to 1 (i.e. 0% to 100% of the variation in Y can be explained by the X-variables). 
+## The coefficient of determination, R2, is similar to the correlation coefficient, R. The correlation coefficient formula will tell how strong of a linear relationship there is between two variables. R Squared is the square of the correlation coefficient, r (hence the term r squared).Therefore, 
+## Coefficient of Determination= (Correlation Coefficient)^2
+## Here, the values of the Square of the correlation coefficient is 0.6517187 which is equivalent to 65.17%
+
+
+
+### 2) We will use the ‘mtcars’ dataset for this question. The dataset is already included in your R distribution. The dataset shows some of the characteristics of different cars. The following shows few samples (i.e. the first 6 rows) of the dataset.
+```{r}
+head(mtcars)
+```
+
+
+### a) James wants to buy a car. He and his friend, Chris, have different opinions about the Horse Power (hp) of cars. James think the weight of a car (wt) can be used to estimate the Horse Power of the car while Chris thinks the fuel consumption expressed in Mile Per Gallon (mpg), is a better estimator of the (hp). Who do you think is right? Construct simple linear models using mtcars data to answer the question.
+```{r}
+JamesCarModel = lm(mtcars$hp~mtcars$wt) 
+summary(JamesCarModel)
+ChrisCarModel = lm(mtcars$hp~mtcars$mpg)
+summary(ChrisCarModel)
+```
+
+## Accuracy of James Car Model which is based on the weight of the car is 43.39% 
+## Accuracy of Chris Car Model which is based on the fuel consumption expressed in Mile per Gallon (mpg) is 60.24% 
+## Therefore Chris is right.
+
+
+
+### b) Build a model that uses the number of cylinders (cyl) and the mile per gallon (mpg) values of a car to predict the car Horse Power (hp). Using this model, what is the estimated Horse Power of a car with 4 calendar and mpg of 22?
+```{r}
+HPModel = lm(mtcars$hp~mtcars$cyl+mtcars$mpg) 
+summary(HPModel)
+anova(HPModel)
+HPModel
+cyl = 4
+mpg = 22
+hp = 54.067 + 23.979*cyl - 2.775*mpg 
+hp
+```
+
+## Based on the above model, the estimated Horse Power of a car with 4 cylindar and mpg of 22 is 88.933.
+
+
+
+### 3) For this question, we are going to use BostonHousing dataset. The dataset is in ‘mlbench’ package, so we first need to instal the package, call the library and the load the dataset using the following commands
+```{r}
+#install.packages('mlbench')
+library(mlbench)
+data(BostonHousing)
+```
+
+
+### a) Build a model to estimate the median value of owner-occupied homes (medv)based on the following variables: crime crate (crim), proportion of residential land zoned for lots over 25,000 sq.ft (zn), the local pupil-teacher ratio (ptratio) and weather the whether the tract bounds Chas River(chas). Is this an accurate model? 
+```{r}
+BHModel = lm(medv~crim+zn+ptratio+chas, data = BostonHousing) 
+summary(BHModel)
+```
+
+## Model’s Accuracy is only 35.99% which is very low and can be improved.
+
+
+
+### b) Use the estimated coefficient to answer these questions?
+### I. Imagine two houses that are identical in all aspects but one bounds the Chas River and the other does not. Which one is more expensive and by how much? 
+## Estimated Coefficient value of chas1 is 4.58393. Since the price is expressed in 1000 units of dollars. The increase in price will be 1000*4.58393 which will be 4583. Therefore one bound of chase river will be $4583 more expensive.
+
+
+### II. Imagine two houses that are identical in all aspects but in the neighborhood of one of them the pupil-teacher ratio is 15 and in the other one is 18. Which one is more expensive and by how much?
+## Estimated Coefficient value of ptratio is -1.49367 Therefore for every unit increase in ptratio there will be 1.4937 unit decrease. One of the ptratio = 15 and other = 18. Therefore, (18-15)*1.4937 = 4.4811. If it is expressed in units of $1000 it will be $4481. Hence ptratio with 15 is $4481 more expensive than ptratio with 18.
+
+
+
+### c) Which of the variables are statistically important (i.e. related to the house price)? Hint: use the p-values of the coefficients to answer
+```{r}
+head(BostonHousing)
+MyData <- BostonHousing[,1:14] 
+HousingModel = lm(medv~., data = MyData) 
+summary(HousingModel)
+```
+
+## The regression output shows that the predictor variables are statistically significant when their p-values equal 0.000. On the other hand, it is not statistically significant because its p-value is greater than the usual significance level of 0.05.
+## Hence, In the above model, P-values of the coefficients of most of the variables is low and hence all the variables are statistically important. But the variables indus and age have p-values 0.738288 and 0.958229 respectively and therefore they are statistically less importatnt. 
+## Also, to answer this question, based on the above model (created in Q3 part(a)) with four variables crim, zn, ptratio & chas, all the variables have low p-value and so all are statistically important.
+
+
+
+### d) Use the anova analysis and determine the order of importance of these four variables.
+```{r}
+anova(BHModel)
+T=anova(BHModel) 
+T$Variable_Importance_Perentage=T[,2]/sum(T[,2]) 
+T
+```
+
+## Order of Importance of these four variables : crim, ptratio, zn, chas.
+
+
